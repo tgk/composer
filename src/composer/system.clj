@@ -3,6 +3,7 @@
             [com.stuartsierra.flow :as flow]
             [clojure.core.async :refer [go >! <! chan put! close!
                                         sliding-buffer]]
+            [clojure.core.async.lab :refer [broadcast]]
 
             [composer.osc              :as osc]
             [composer.instrument-state :as instrument-state]
@@ -22,16 +23,22 @@
 (def system
   (flow/flow
 
-   :osc-listener ([osc-port osc-alias osc-out-ch]
-                    (osc/start osc-port osc-alias osc-out-ch))
+   :osc-listener ([osc-port osc-alias osc-out-ch osc-instrument-state-ch]
+                    (osc/start osc-port osc-alias
+                               osc-out-ch
+                               osc-instrument-state-ch))
+
+   :instrument-state-ch ([osc-instrument-state-ch composer-instrument-state-ch]
+                           (broadcast osc-instrument-state-ch
+                                      composer-instrument-state-ch))
 
    :instrument-state-loop ([osc-out-ch instrument-state-ch]
                              (instrument-state/instrument-state-loop
                               osc-out-ch instrument-state-ch))
 
-   :composer-loop ([instrument-state-ch melody-ch]
+   :composer-loop ([composer-instrument-state-ch melody-ch]
                      (composer/composer-loop
-                      instrument-state-ch
+                      composer-instrument-state-ch
                       melody-ch))
 
    :overtone-loop ([melody-ch]
@@ -41,11 +48,12 @@
   [& [options]]
   (flow/run system
             (merge
-             {:osc-port            44100
-              :osc-alias           "composer"
-              :osc-out-ch          (chan 64)
-              :instrument-state-ch (chan (sliding-buffer 1))
-              :melody-ch           (chan (sliding-buffer 1))}
+             {:osc-port                     44100
+              :osc-alias                    "composer"
+              :osc-out-ch                   (chan 64)
+              :osc-instrument-state-ch      (chan (sliding-buffer 1))
+              :composer-instrument-state-ch (chan (sliding-buffer 1))
+              :melody-ch                    (chan (sliding-buffer 1))}
              options)))
 
 (defn- safe-close!
@@ -54,10 +62,9 @@
 
 (defn stop
   [system]
-  (when-let [osc-listener (:osc-listener system)]
-    (osc-listener))
   (safe-close! (:osc-out-ch system))
-  (safe-close! (:instrument-state-ch system))
+  (safe-close! (:osc-instrument-state-ch system))
+  (safe-close! (:composer-instrument-state-ch system))
   (safe-close! (:melody-ch system)))
 
 (defn start-system

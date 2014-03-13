@@ -14,7 +14,11 @@
   running. After that, you'll have to execute the forms in this
   namespace."
   [melody-ch]
-  :loop-does-nothing)
+  (go
+   (loop []
+     (when-let [melody (<! melody-ch)]
+       (println "melody - i won't play it" melody)
+       (recur)))))
 
 (comment
 

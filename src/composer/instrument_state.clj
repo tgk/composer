@@ -7,7 +7,12 @@
 
   [:scale scale-keyword]."
   [state update]
-  (apply assoc state update))
+  (if (= :scale (first update))
+    (let [[_ scale] update]
+      (if (= scale (:scale state))
+        (dissoc state :scale)
+        (assoc state :scale scale)))
+    state))
 
 (defn instrument-state-loop
   "Listens for updates on update-ch and emits the latest state on
@@ -19,7 +24,7 @@
   I might add a schema to the updates that come in."
   [update-ch emit-state-ch]
   (go
-   (loop [state {:scale :major}]
+   (loop [state {}]
      (when-let [update (<! update-ch)]
        (let [updated-state (update-instrument-state state update)]
          (>! emit-state-ch updated-state)
