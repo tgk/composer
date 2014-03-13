@@ -66,26 +66,29 @@
     :as instrument-state}]
   {:melody
    (rand-nth
-    (with-db
-      semitone-facts
-      (run 64 [melody2]
-           (fresh [melody
-                   m1 m2 m3 m4 m5 m6 m7 m8
-                   scale
-                   s1 s2 s3 s4 s5 s6 s7 s8
-                   base-note scale-type]
-                  (== s1 :G3)
-                  (== melody [m1 m2 m3 m4 m5 m6 m7 m8])
-                  (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
-                  (== m1 s1)
-                  (== m8 s8)
-                  ;;(== m7 s5) ;; perfect cadence
-                  ;;(== m7 s4) ;; plagal cadence
-                  (== m7 s2) ;; just nice cadence
-                  (== melody2 [m1 m2 m3 m4 m5 m6 m7 m1])
-                  (membero [scale-keyword scale-type] scale-modes)
-                  (scaleo base-note major-scale scale)
-                  (permuteo scale melody)))))})
+    (or
+     (seq
+      (with-db
+        semitone-facts
+        (run 64 [melody2]
+             (fresh [melody
+                     m1 m2 m3 m4 m5 m6 m7 m8
+                     scale
+                     s1 s2 s3 s4 s5 s6 s7 s8
+                     base-note scale-type]
+                    (== s1 :G3)
+                    (== melody [m1 m2 m3 m4 m5 m6 m7 m8])
+                    (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
+                    (== m1 s1)
+                    (== m8 s8)
+                    ;;(== m7 s5) ;; perfect cadence
+                    ;;(== m7 s4) ;; plagal cadence
+                    (== m7 s2) ;; just nice cadence
+                    (== melody2 [m1 m2 m3 m4 m5 m6 m7 m1])
+                    (membero [scale-keyword scale-type] scale-modes)
+                    (scaleo base-note major-scale scale)
+                    (permuteo scale melody)))))
+     [[]]))})
 
 ;; Loop
 
