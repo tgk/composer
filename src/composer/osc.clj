@@ -13,16 +13,23 @@
   "Returns the OSC events for bringing an OSC device in sync with
   instrument-state."
   [instrument-state]
-  (for [[path scale] toggle->scale]
-    [path (float (if (= scale (:scale instrument-state)) 1.0 0.0))]))
+  (concat
+   (for [[path scale] toggle->scale]
+     [path (float (if (= scale (:scale instrument-state)) 1.0 0.0))])
+   (for [gap (range 9)]
+     [(str "/3/multifader2/" gap) (get-in instrument-state [:gaps gap] 0.5)])))
 
-(defn- start-loop
-  [scale-touched-ch out-ch]
+(defn- instrument-state-loop
+  [instrument-state-ch connected-clients shutdown]
   (go
    (loop []
-     (when-let [scale (<! scale-touched-ch)]
-       (>! out-ch [:scale scale])
-       (recur)))))
+       (if-let [instrument-state (<! instrument-state-ch)]
+         (do
+           (doseq [[_ client] @connected-clients]
+             (doseq [[path value] (instrument-state->osc-updates instrument-state)]
+               (osc/osc-send client path value)))
+           (recur))
+         (shutdown)))))
 
 (defn- add-touchosc-client
   [clients host]
@@ -38,25 +45,27 @@
   "Closes when instument-state-ch is closed."
   [port alias out-ch instrument-state-ch]
   (let [server (osc/osc-server port alias)
-        scale-touched-ch (chan)
-        connected-clients (atom {})]
-    (start-loop scale-touched-ch out-ch)
+        connected-clients (atom {})
+        register-client! (fn [msg] (swap! connected-clients add-touchosc-client (:src-host msg)))]
     (doseq [[path scale] toggle->scale]
       (osc/osc-handle
        server path
        (fn [msg]
-         (put! scale-touched-ch scale)
-         (swap! connected-clients add-touchosc-client (:src-host msg)))))
+         (put! out-ch [:scale scale])
+         (register-client! msg))))
+    (doseq [gap (range 8)]
+      (osc/osc-handle
+       server (str "/3/multifader2/" gap)
+       (fn [msg]
+         (put! out-ch [:gap gap (-> msg :args first)])
+         (register-client! msg))))
+    (osc/osc-listen server
+                    (fn [msg] (println "osc" msg)))
     (osc/zero-conf-on)
-    (go
-     (loop []
-       (if-let [instrument-state (<! instrument-state-ch)]
-         (do
-           (doseq [[_ client] @connected-clients]
-             (doseq [[path value] (instrument-state->osc-updates instrument-state)]
-               (osc/osc-send client path value)))
-           (recur))
-         (do
-           (close! scale-touched-ch)
-           (osc/zero-conf-off)
-           (osc/osc-close server)))))))
+    (instrument-state-loop
+     instrument-state-ch
+     connected-clients
+     (fn shutdown
+       []
+       (osc/zero-conf-off)
+       (osc/osc-close server)))))

@@ -63,8 +63,10 @@
 
 (defn- random-composition
   [{scale-keyword :scale
+    gaps          :gaps
     :as instrument-state}]
-  {:melody
+  {:gaps (for [i (range 8)] (get gaps i 0.5))
+   :melody
    (rand-nth
     (or
      (seq

@@ -7,11 +7,14 @@
 
   [:scale scale-keyword]."
   [state update]
-  (if (= :scale (first update))
-    (let [[_ scale] update]
-      (if (= scale (:scale state))
-        (dissoc state :scale)
-        (assoc state :scale scale)))
+  (println "update" update)
+  (case (first update)
+    :scale (let [[_ scale] update]
+             (if (= scale (:scale state))
+               (dissoc state :scale)
+               (assoc state :scale scale)))
+    :gap   (let [[_ gap size] update]
+             (assoc-in state [:gaps gap] size))
     state))
 
 (defn instrument-state-loop

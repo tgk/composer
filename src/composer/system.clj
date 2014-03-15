@@ -42,6 +42,7 @@
                       melody-ch))
 
    :overtone-loop ([melody-ch]
+                     #_(print-loop "melody" melody-ch)
                      (overtone/overtone-loop melody-ch))))
 
 (defn start
