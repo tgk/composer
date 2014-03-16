@@ -8,7 +8,7 @@
 
 (disable-reload!)
 
-(defn overtone-loop
+#_(defn overtone-loop
   "Dummy overtone loop - we can't load the server on nrepl boot, so this
   is the dummy standin until the live environment is up and
   running. After that, you'll have to execute the forms in this
@@ -22,7 +22,7 @@
 
 #_(boot-internal-server)
 
-#_(do
+(do
 
   (definst triangle-wave
     [freq 440 attack 0.01 sustain 0.1 release 0.4 vol 0.4]
@@ -57,8 +57,8 @@
     [metro beat-num melody-atom]
     (let [{:keys [melody gaps] :or {:melody [:C4] :gaps []}} @melody-atom
           timings (translated-gaps gaps)]
-      (doseq [[beat note] (zipmap (range) melody)]
-        (at (metro (+ beat-num (or (nth timings beat) 0)))
+      (doseq [[beat note] (zipmap timings melody)]
+        (at (metro (+ beat-num beat))
             (play-note note)))
       (apply-at
        (metro (+ (count melody) beat-num))
@@ -74,7 +74,7 @@
     does run stop to silence melodies when the loop terminates."
     [melody-ch]
     (let [melody-atom (atom [])
-          metro (metronome 200)]
+          metro (metronome 100)]
       (chord-progression-atom metro (metro) melody-atom)
       (go
        (loop []

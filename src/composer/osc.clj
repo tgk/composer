@@ -53,7 +53,7 @@
        (fn [msg]
          (put! out-ch [:scale scale])
          (register-client! msg))))
-    (doseq [gap (range 8)]
+    (doseq [gap (range 9)]
       (osc/osc-handle
        server (str "/3/multifader2/" gap)
        (fn [msg]
