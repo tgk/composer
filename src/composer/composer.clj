@@ -40,15 +40,17 @@
 
 (db-rel semitone note-1 note-2)
 
+(def keys-from-c
+  [:C3 :C#3 :D3 :D#3 :E3 :F3 :F#3 :G3 :G#3 :A3 :A#3 :B3
+   :C4 :C#4 :D4 :D#4 :E4 :F4 :F#4 :G4 :G#4 :A4 :A#4 :B4
+   :C5])
+
 (def semitone-facts
   (reduce
    (fn [db [note-1 note-2]]
      (db-fact db semitone note-1 note-2))
    empty-db
-   (partition
-    2 1 [:C3 :C#3 :D3 :D#3 :E3 :F3 :F#3 :G3 :G#3 :A3 :A#3 :B3
-         :C4 :C#4 :D4 :D#4 :E4 :F4 :F#4 :G4 :G#4 :A4 :A#4 :B4
-         :C5])))
+   (partition 2 1 keys-from-c)))
 
 (defne scaleo [base-note scale notes]
   ([note [1 . scale-rest] [note . ()]])
@@ -61,13 +63,18 @@
             (semitone note next-note)
             (scaleo next-note scale-rest notes))))
 
+(defn key-restriction
+  [instrument-state s1]
+  (if-let [key (:key instrument-state)]
+    (all (== key s1))
+    succeed))
+
 (defn- random-composition
-  [{key           :key
-    scale-keyword :scale
+  [{scale-keyword :scale
     gaps          :gaps
     :as instrument-state
     ;; should probably default when booting up
-    :or {:key :C4}}]
+    }]
   {:gaps (for [i (range 8)] (get gaps i 0.5))
    :melody
    (rand-nth
@@ -81,7 +88,7 @@
                      scale
                      s1 s2 s3 s4 s5 s6 s7 s8
                      base-note scale-type]
-                    (== s1 key)
+                    (key-restriction instrument-state s1)
                     (== melody [m1 m2 m3 m4 m5 m6 m7 m8])
                     (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
                     (== m1 s1)
