@@ -69,12 +69,16 @@
     (all (== key s1))
     succeed))
 
+(defn scale-restriction
+  [instrument-state scale-type]
+  (if (:scale instrument-state)
+    (all
+     (membero [(:scale instrument-state) scale-type] scale-modes))
+    succeed))
+
 (defn- random-composition
-  [{scale-keyword :scale
-    gaps          :gaps
-    :as instrument-state
-    ;; should probably default when booting up
-    }]
+  [{gaps :gaps
+    :as instrument-state}]
   {:gaps (for [i (range 8)] (get gaps i 0.5))
    :melody
    (rand-nth
@@ -97,8 +101,8 @@
                     ;;(== m7 s4) ;; plagal cadence
                     (== m7 s2) ;; just nice cadence
                     (== melody2 [m1 m2 m3 m4 m5 m6 m7 m1])
-                    (membero [scale-keyword scale-type] scale-modes)
-                    (scaleo base-note major-scale scale)
+                    (scale-restriction instrument-state scale-type)
+                    (scaleo base-note scale-type scale)
                     (permuteo scale melody)))))
      [[]]))})
 
