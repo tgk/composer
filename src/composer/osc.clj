@@ -9,11 +9,28 @@
    "/1/multitoggle1/1/4" :locrian-mode
    "/1/multitoggle1/1/5" :mixolydian-mode})
 
+(def ^:private toggle->key
+  {"/1/toggle1"  :C4
+   "/1/toggle8"  :C#4
+   "/1/toggle2"  :D4
+   "/1/toggle9"  :D#4
+   "/1/toggle3"  :E4
+   "/1/toggle4"  :F4
+   "/1/toggle10" :F#4
+   "/1/toggle5"  :G4
+   "/1/toggle11" :G#4
+   "/1/toggle6"  :A4
+   "/1/toggle12" :A#4
+   "/1/toggle7"  :B4})
+
 (defn instrument-state->osc-updates
   "Returns the OSC events for bringing an OSC device in sync with
   instrument-state."
   [instrument-state]
+  (println instrument-state)
   (concat
+   (for [[path key] toggle->key]
+     [path (float (if (= key (:key instrument-state)) 1.0 0.0))])
    (for [[path scale] toggle->scale]
      [path (float (if (= scale (:scale instrument-state)) 1.0 0.0))])
    (for [gap (range 9)]
@@ -37,16 +54,18 @@
     clients
     (assoc clients host (osc/osc-client host 9000))))
 
-;; TODO: should take channel for emitting events such as
-;; [:scale :major]
-;; [:key :C#]
-;; [:fire]
 (defn start
   "Closes when instument-state-ch is closed."
   [port alias out-ch instrument-state-ch]
   (let [server (osc/osc-server port alias)
         connected-clients (atom {})
         register-client! (fn [msg] (swap! connected-clients add-touchosc-client (:src-host msg)))]
+    (doseq [[path key] toggle->key]
+      (osc/osc-handle
+       server path
+       (fn [msg]
+         (put! out-ch [:key key])
+         (register-client! msg))))
     (doseq [[path scale] toggle->scale]
       (osc/osc-handle
        server path

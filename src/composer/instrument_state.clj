@@ -7,8 +7,9 @@
 
   [:scale scale-keyword]."
   [state update]
-  (println "update" update)
   (case (first update)
+    :key   (let [[_ key] update]
+             (assoc state :key key))
     :scale (let [[_ scale] update]
              (if (= scale (:scale state))
                (dissoc state :scale)
