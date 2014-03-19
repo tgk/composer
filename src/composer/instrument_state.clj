@@ -2,10 +2,7 @@
   (:require [clojure.core.async :refer [go >! <!]]))
 
 (defn- update-instrument-state
-  "Updates the instrument state based on the update. The recognised
-  updates are
-
-  [:scale scale-keyword]."
+  "Updates the instrument state based on the update."
   [state update]
   (case (first update)
     :key     (let [[_ key] update]
@@ -24,8 +21,7 @@
 
 (defn instrument-state-loop
   "Listens for updates on update-ch and emits the latest state on
-  emit-state-ch. The loop terminates if update-ch is closed. Recognised
-  updates at the moment are
+  emit-state-ch. The loop terminates if update-ch is closed.
 
   [:scale scale-keyword].
 
