@@ -75,6 +75,14 @@
     (all (membero [(:scale instrument-state) scale-type] scale-modes))
     succeed))
 
+(defn cadence-restriction
+  [instrument-state m7 s2 s4 s5]
+  (case (:cadence instrument-state)
+    :perfect   (all (== m7 s5))
+    :plagal    (all (== m7 s4))
+    :just-nice (all (== m7 s2))
+    nil        succeed))
+
 (defn- random-composition
   [{gaps :gaps
     :as instrument-state}]
@@ -96,9 +104,7 @@
                     (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
                     (== m1 s1)
                     (== m8 s8)
-                    ;;(== m7 s5) ;; perfect cadence
-                    ;;(== m7 s4) ;; plagal cadence
-                    (== m7 s2) ;; just nice cadence
+                    (cadence-restriction instrument-state m7 s2 s4 s5)
                     (== melody2 [m1 m2 m3 m4 m5 m6 m7 m1])
                     (scale-restriction instrument-state scale-type)
                     (scaleo base-note scale-type scale)
