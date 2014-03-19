@@ -62,9 +62,12 @@
             (scaleo next-note scale-rest notes))))
 
 (defn- random-composition
-  [{scale-keyword :scale
+  [{key           :key
+    scale-keyword :scale
     gaps          :gaps
-    :as instrument-state}]
+    :as instrument-state
+    ;; should probably default when booting up
+    :or {:key :C4}}]
   {:gaps (for [i (range 8)] (get gaps i 0.5))
    :melody
    (rand-nth
@@ -78,7 +81,7 @@
                      scale
                      s1 s2 s3 s4 s5 s6 s7 s8
                      base-note scale-type]
-                    (== s1 :G3)
+                    (== s1 key)
                     (== melody [m1 m2 m3 m4 m5 m6 m7 m8])
                     (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
                     (== m1 s1)

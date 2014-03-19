@@ -10,18 +10,18 @@
    "/1/multitoggle1/1/5" :mixolydian-mode})
 
 (def ^:private toggle->key
-  {"/1/toggle1"  :C4
-   "/1/toggle8"  :C#4
-   "/1/toggle2"  :D4
-   "/1/toggle9"  :D#4
-   "/1/toggle3"  :E4
-   "/1/toggle4"  :F4
-   "/1/toggle10" :F#4
-   "/1/toggle5"  :G4
-   "/1/toggle11" :G#4
-   "/1/toggle6"  :A4
-   "/1/toggle12" :A#4
-   "/1/toggle7"  :B4})
+  {"/1/toggle1"  :C3
+   "/1/toggle8"  :C#3
+   "/1/toggle2"  :D3
+   "/1/toggle9"  :D#3
+   "/1/toggle3"  :E3
+   "/1/toggle4"  :F3
+   "/1/toggle10" :F#3
+   "/1/toggle5"  :G3
+   "/1/toggle11" :G#3
+   "/1/toggle6"  :A3
+   "/1/toggle12" :A#3
+   "/1/toggle7"  :B3})
 
 (defn instrument-state->osc-updates
   "Returns the OSC events for bringing an OSC device in sync with
