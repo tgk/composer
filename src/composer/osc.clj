@@ -23,6 +23,11 @@
    "/1/toggle12" :A#3
    "/1/toggle7"  :B3})
 
+(def ^:private toggle->cadence
+  {"/1/multitoggle2/1/1" :perfect
+   "/1/multitoggle2/1/2" :plagal
+   "/1/multitoggle2/1/3" :just-nice})
+
 (defn instrument-state->osc-updates
   "Returns the OSC events for bringing an OSC device in sync with
   instrument-state."
@@ -33,6 +38,8 @@
      [path (float (if (= key (:key instrument-state)) 1.0 0.0))])
    (for [[path scale] toggle->scale]
      [path (float (if (= scale (:scale instrument-state)) 1.0 0.0))])
+   (for [[path key] toggle->cadence]
+     [path (float (if (= key (:cadence instrument-state)) 1.0 0.0))])
    (for [gap (range 9)]
      [(str "/3/multifader2/" gap) (get-in instrument-state [:gaps gap] 0.5)])))
 
@@ -77,6 +84,12 @@
        (fn [msg]
          (put! out-ch [:scale scale])
          (register-client! msg))))
+    (doseq [[path cadence] toggle->cadence]
+      (osc/osc-handle
+       server path
+       (fn [msg]
+         (put! out-ch [:cadence cadence])
+         (register-client! msg))))
     (doseq [gap (range 9)]
       (osc/osc-handle
        server (str "/3/multifader2/" gap)
@@ -84,7 +97,9 @@
          (put! out-ch [:gap gap (-> msg :args first)])
          (register-client! msg))))
     (osc/osc-listen server
-                    (fn [msg] (println "osc" msg)))
+                    (fn [msg]
+                      (println "osc" msg)
+                      (register-client! msg)))
     (osc/zero-conf-on)
     (instrument-state-loop
      instrument-state-ch

@@ -8,14 +8,18 @@
   [:scale scale-keyword]."
   [state update]
   (case (first update)
-    :key   (let [[_ key] update]
-             (assoc state :key key))
-    :scale (let [[_ scale] update]
-             (if (= scale (:scale state))
-               (dissoc state :scale)
-               (assoc state :scale scale)))
-    :gap   (let [[_ gap size] update]
-             (assoc-in state [:gaps gap] size))
+    :key     (let [[_ key] update]
+               (assoc state :key key))
+    :scale   (let [[_ scale] update]
+               (if (= scale (:scale state))
+                 (dissoc state :scale)
+                 (assoc state :scale scale)))
+    :cadence (let [[_ cadence] update]
+               (if (= cadence (:cadence state))
+                 (dissoc state :cadence)
+                 (assoc state :cadence cadence)))
+    :gap     (let [[_ gap size] update]
+               (assoc-in state [:gaps gap] size))
     state))
 
 (defn instrument-state-loop
