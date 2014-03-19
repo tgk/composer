@@ -40,13 +40,14 @@
   [instrument-state-ch connected-clients shutdown]
   (go
    (loop []
-       (if-let [instrument-state (<! instrument-state-ch)]
-         (do
-           (doseq [[_ client] @connected-clients]
-             (doseq [[path value] (instrument-state->osc-updates instrument-state)]
-               (osc/osc-send client path value)))
-           (recur))
-         (shutdown)))))
+     (if-let [instrument-state (<! instrument-state-ch)]
+       (do
+         (doseq [[_ client] @connected-clients]
+           (doseq [[path value] (instrument-state->osc-updates
+                                 instrument-state)]
+             (osc/osc-send client path value)))
+         (recur))
+       (shutdown)))))
 
 (defn- add-touchosc-client
   [clients host]
@@ -59,7 +60,11 @@
   [port alias out-ch instrument-state-ch]
   (let [server (osc/osc-server port alias)
         connected-clients (atom {})
-        register-client! (fn [msg] (swap! connected-clients add-touchosc-client (:src-host msg)))]
+        register-client! (fn [msg]
+                           (swap!
+                            connected-clients
+                            add-touchosc-client
+                            (:src-host msg)))]
     (doseq [[path key] toggle->key]
       (osc/osc-handle
        server path
