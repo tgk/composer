@@ -4,7 +4,8 @@
   (:require [clojure.tools.namespace.repl :refer [disable-reload!]]
             [clojure.core.async :refer [go >! <!]]
             [overtone.core :as overtone :refer :all]
-            [overtone.osc.util :refer :all]))
+            [overtone.osc.util :refer :all]
+            #_[overtone.inst.sampled-piano :as piano]))
 
 (disable-reload!)
 
@@ -30,9 +31,17 @@
        (lf-tri freq)
        vol))
 
-  (defn play-note
+  #_(defn play-note
     [music-note]
     (-> music-note note midi->hz triangle-wave))
+
+  (defn play-note
+    [music-note]
+    (-> music-note note piano/sampled-piano))
+
+  #_(piano/sampled-piano (-> :C5 note))
+
+  #_(play-note :C4)
 
   (defn sum-gaps
     ([gaps]
