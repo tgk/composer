@@ -72,8 +72,7 @@
 (defn scale-restriction
   [instrument-state scale-type]
   (if (:scale instrument-state)
-    (all
-     (membero [(:scale instrument-state) scale-type] scale-modes))
+    (all (membero [(:scale instrument-state) scale-type] scale-modes))
     succeed))
 
 (defn- random-composition
@@ -116,6 +115,5 @@
   (go
    (loop []
      (when-let [instrument-state (<! instrument-state-ch)]
-       ;; replace with composing logic
        (>! melody-ch (random-composition instrument-state))
        (recur)))))
