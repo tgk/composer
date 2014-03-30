@@ -84,44 +84,59 @@
     nil        succeed))
 
 (defn- random-composition
-  [{gaps :gaps
-    speed :speed
-    :as instrument-state}]
-  {:gaps (for [i (range 8)] (get gaps i 0.5))
-   :speed speed
-   :melody
-   (rand-nth
-    (or
-     (seq
-      (with-db
-        semitone-facts
-        (run 64 [melody2]
-             (fresh [melody
-                     m1 m2 m3 m4 m5 m6 m7 m8
-                     scale
-                     s1 s2 s3 s4 s5 s6 s7 s8
-                     base-note scale-type]
-                    (key-restriction instrument-state s1)
-                    (== melody [m1 m2 m3 m4 m5 m6 m7 m8])
-                    (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
-                    (== m1 s1)
-                    (== m8 s8)
-                    (cadence-restriction instrument-state m7 s2 s4 s5)
-                    (== melody2 [m1 m2 m3 m4 m5 m6 m7 m1])
-                    (scale-restriction instrument-state scale-type)
-                    (scaleo base-note scale-type scale)
-                    (permuteo scale melody)))))
-     [[]]))})
+  [instrument-state]
+  (rand-nth
+   (or
+    (seq
+     (with-db
+       semitone-facts
+       (run 64 [melody2]
+            (fresh [melody
+                    m1 m2 m3 m4 m5 m6 m7 m8
+                    scale
+                    s1 s2 s3 s4 s5 s6 s7 s8
+                    base-note scale-type]
+                   (key-restriction instrument-state s1)
+                   (== melody [m1 m2 m3 m4 m5 m6 m7 m8])
+                   (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
+                   (== m1 s1)
+                   (== m8 s8)
+                   (cadence-restriction instrument-state m7 s2 s4 s5)
+                   (== melody2 [m1 m2 m3 m4 m5 m6 m7 m1])
+                   (scale-restriction instrument-state scale-type)
+                   (scaleo base-note scale-type scale)
+                   (permuteo scale melody)))))
+    [[]])))
 
 ;; Loop
+
+(defn- same-melody-params?
+  [instrument-state-1 instrument-state-2]
+  (let [non-melody-keys [:speed :gaps]]
+    (= (apply dissoc instrument-state-1 non-melody-keys)
+       (apply dissoc instrument-state-2 non-melody-keys))))
 
 (defn composer-loop
   "Listens for new instrument states on instrument-state-ch and emits a
   random melody to melody-ch. The loop terminates when
-  instrument-state-ch closes."
+  instrument-state-ch closes.
+
+  Changes to :speed or :gaps does not compose a new melody, but alters
+  the timing of the existing."
   [instrument-state-ch melody-ch]
   (go
-   (loop [previous-instrument-state nil]
+   (loop [prev-instrument-state nil
+          prev-composition      nil]
      (when-let [instrument-state (<! instrument-state-ch)]
-       (>! melody-ch (random-composition instrument-state))
-       (recur instrument-state)))))
+       (let [gaps (for [i (range 8)] (get (:gaps instrument-state) i 0.5))
+             speed (:speed instrument-state)
+             new-melody (if (same-melody-params? prev-instrument-state
+                                                 instrument-state)
+                          (:melody prev-composition)
+                          (random-composition instrument-state))
+             new-composition {:gaps gaps
+                              :speed speed
+                              :melody new-melody}]
+         (>! melody-ch new-composition)
+         (recur instrument-state
+                new-composition))))))
