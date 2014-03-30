@@ -5,7 +5,7 @@
             [clojure.core.async :refer [go >! <!]]
             [overtone.core :as overtone :refer :all]
             [overtone.osc.util :refer :all]
-            #_[overtone.inst.sampled-piano :as piano]))
+            [overtone.inst.sampled-piano :as piano]))
 
 (disable-reload!)
 
