@@ -96,6 +96,11 @@
        (fn [msg]
          (put! out-ch [:gap gap (-> msg :args first)])
          (register-client! msg))))
+    (osc/osc-handle
+     server "/3/fader3"
+     (fn [msg]
+       (put! out-ch [:speed (-> msg :args first)])
+       (register-client! msg)))
     (osc/osc-listen server
                     (fn [msg]
                       (println "osc" msg)

@@ -77,6 +77,11 @@
        melody-atom
        [])))
 
+  (defn speed->bpm
+    [speed]
+    (when speed
+      (* speed 300)))
+
   (defn overtone-loop
     "Starts an overtone server and listens for melodies on
     melody-ch. Never closes down the server - it takes too long - but
@@ -90,7 +95,9 @@
          (let [melody (<! melody-ch)]
            (if melody
              (do
+               (metro :bpm (or (speed->bpm (:speed melody)) 100))
                (reset! melody-atom melody)
                (recur))
              (overtone/stop)))))))
+
   )

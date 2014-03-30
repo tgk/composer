@@ -17,6 +17,8 @@
                  (assoc state :cadence cadence)))
     :gap     (let [[_ gap size] update]
                (assoc-in state [:gaps gap] size))
+    :speed   (let [[_ speed] update]
+               (assoc state :speed speed))
     state))
 
 (defn instrument-state-loop

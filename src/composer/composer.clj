@@ -85,8 +85,10 @@
 
 (defn- random-composition
   [{gaps :gaps
+    speed :speed
     :as instrument-state}]
   {:gaps (for [i (range 8)] (get gaps i 0.5))
+   :speed speed
    :melody
    (rand-nth
     (or
@@ -119,7 +121,7 @@
   instrument-state-ch closes."
   [instrument-state-ch melody-ch]
   (go
-   (loop []
+   (loop [previous-instrument-state nil]
      (when-let [instrument-state (<! instrument-state-ch)]
        (>! melody-ch (random-composition instrument-state))
-       (recur)))))
+       (recur instrument-state)))))
