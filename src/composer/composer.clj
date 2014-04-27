@@ -83,30 +83,39 @@
     :just-nice (all (== m7 s2))
     nil        succeed))
 
+(defn- logic-program
+  [instrument-state melody2]
+  (fresh [melody
+          m1 m2 m3 m4 m5 m6 m7 m8
+          scale
+          s1 s2 s3 s4 s5 s6 s7 s8
+          base-note scale-type]
+         (key-restriction instrument-state s1)
+         (== melody [m1 m2 m3 m4 m5 m6 m7 m8])
+         (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
+         (== m1 s1)
+         (== m8 s8)
+         (cadence-restriction instrument-state m7 s2 s4 s5)
+         (== melody2 [m1 m2 m3 m4 m5 m6 m7 m1])
+         (scale-restriction instrument-state scale-type)
+         (scaleo base-note scale-type scale)
+         (permuteo scale melody)))
+
+(defn compositions
+  [instrument-state & [n]]
+  (with-db
+    semitone-facts
+    (if n
+      (run n [melody2]
+           (logic-program instrument-state melody2))
+      (run* [melody2]
+            (logic-program instrument-state melody2)))))
+
 (defn- random-composition
   [instrument-state]
   (rand-nth
-   (or
-    (seq
-     (with-db
-       semitone-facts
-       (run 64 [melody2]
-            (fresh [melody
-                    m1 m2 m3 m4 m5 m6 m7 m8
-                    scale
-                    s1 s2 s3 s4 s5 s6 s7 s8
-                    base-note scale-type]
-                   (key-restriction instrument-state s1)
-                   (== melody [m1 m2 m3 m4 m5 m6 m7 m8])
-                   (== scale [s1 s2 s3 s4 s5 s6 s7 s8])
-                   (== m1 s1)
-                   (== m8 s8)
-                   (cadence-restriction instrument-state m7 s2 s4 s5)
-                   (== melody2 [m1 m2 m3 m4 m5 m6 m7 m1])
-                   (scale-restriction instrument-state scale-type)
-                   (scaleo base-note scale-type scale)
-                   (permuteo scale melody)))))
-    [[]])))
+   (or (seq (compositions instrument-state 1024))
+       [[]])))
 
 ;; Loop
 
