@@ -5,6 +5,23 @@ TouchOSC for interacting with the rules, core.logic for composing
 melodies, Overtone for playing melodies and core.async for wiring the
 system.
 
+## Running the system
+
+Overtone can be a bit, eh, difficult when using dynamic reloading of
+namespaces etc.. To get the system up and running, you should boot the
+REPL, evaluate the commented sections of the `overtone.clj` namespace
+and then run `user/go`.
+
+To interact with the running system, you should install
+[TouchOSC](http://hexler.net/software/touchosc) on your phone, load up
+the interface from the `touchosc/` folder onto your phone using the
+TouchOSC builder, and connect to the running instance. Again, this
+requires a bit of work and having an interface straight out of Composer
+running on your box would be nice addition.
+
+If you're stuck, don't hesitate to contact me on twitter
+(`@tgkristensen`).
+
 ## Presentations
 
 Composer has been presented at the following conferences:
